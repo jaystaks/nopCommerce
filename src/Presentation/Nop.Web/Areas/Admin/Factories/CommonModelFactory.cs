@@ -83,7 +83,6 @@ namespace Nop.Web.Areas.Admin.Factories
         private readonly IProductService _productService;
         private readonly IReturnRequestService _returnRequestService;
         private readonly ISearchTermService _searchTermService;
-        private readonly IServiceCollection _serviceCollection;
         private readonly IShippingPluginManager _shippingPluginManager;
         private readonly IStaticCacheManager _staticCacheManager;
         private readonly IStoreContext _storeContext;
@@ -129,7 +128,6 @@ namespace Nop.Web.Areas.Admin.Factories
             IProductService productService,
             IReturnRequestService returnRequestService,
             ISearchTermService searchTermService,
-            IServiceCollection serviceCollection,
             IShippingPluginManager shippingPluginManager,
             IStaticCacheManager staticCacheManager,
             IStoreContext storeContext,
@@ -171,7 +169,6 @@ namespace Nop.Web.Areas.Admin.Factories
             _productService = productService;
             _returnRequestService = returnRequestService;
             _searchTermService = searchTermService;
-            _serviceCollection = serviceCollection;
             _shippingPluginManager = shippingPluginManager;
             _staticCacheManager = staticCacheManager;
             _storeContext = storeContext;
@@ -469,32 +466,32 @@ namespace Nop.Web.Areas.Admin.Factories
                 });
             }
             
-            //check whether there are different plugins which try to override the same interface
-            var baseLibraries = new[] { "Nop.Core", "Nop.Data", "Nop.Services", "Nop.Web", "Nop.Web.Framework" };
-            var overridenServices = _serviceCollection.Where(p =>
-                    p.ServiceType.FullName != null &&
-                    p.ServiceType.FullName.StartsWith("Nop.", StringComparison.InvariantCulture) &&
-                    !p.ServiceType.FullName.StartsWith(
-                        typeof(IConsumer<>).FullName?.Replace("~1", string.Empty) ?? string.Empty,
-                        StringComparison.InvariantCulture)).Select(p =>
-                    KeyValuePair.Create(p.ServiceType.FullName, p.ImplementationType?.Assembly.GetName().Name))
-                .Where(p => baseLibraries.All(library =>
-                    !p.Value?.StartsWith(library, StringComparison.InvariantCultureIgnoreCase) ?? false))
-                .GroupBy(p => p.Key, p => p.Value)
-                .Where(p => p.Count() > 1)
-                .ToDictionary(p => p.Key, p => p.ToList());
+            ////check whether there are different plugins which try to override the same interface
+            //var baseLibraries = new[] { "Nop.Core", "Nop.Data", "Nop.Services", "Nop.Web", "Nop.Web.Framework" };
+            //var overridenServices = _serviceCollection.Where(p =>
+            //        p.ServiceType.FullName != null &&
+            //        p.ServiceType.FullName.StartsWith("Nop.", StringComparison.InvariantCulture) &&
+            //        !p.ServiceType.FullName.StartsWith(
+            //            typeof(IConsumer<>).FullName?.Replace("~1", string.Empty) ?? string.Empty,
+            //            StringComparison.InvariantCulture)).Select(p =>
+            //        KeyValuePair.Create(p.ServiceType.FullName, p.ImplementationType?.Assembly.GetName().Name))
+            //    .Where(p => baseLibraries.All(library =>
+            //        !p.Value?.StartsWith(library, StringComparison.InvariantCultureIgnoreCase) ?? false))
+            //    .GroupBy(p => p.Key, p => p.Value)
+            //    .Where(p => p.Count() > 1)
+            //    .ToDictionary(p => p.Key, p => p.ToList());
 
-            foreach (var overridenService in overridenServices)
-            {
-                var assemblies = overridenService.Value
-                    .Aggregate("", (current, all) => all + ", " + current).TrimEnd(',', ' ');
+            //foreach (var overridenService in overridenServices)
+            //{
+            //    var assemblies = overridenService.Value
+            //        .Aggregate("", (current, all) => all + ", " + current).TrimEnd(',', ' ');
 
-                models.Add(new SystemWarningModel
-                {
-                    Level = SystemWarningLevel.Warning,
-                    Text = string.Format(await _localizationService.GetResourceAsync("Admin.System.Warnings.PluginsOverrideSameService"), overridenService.Key, assemblies)
-                });
-            }
+            //    models.Add(new SystemWarningModel
+            //    {
+            //        Level = SystemWarningLevel.Warning,
+            //        Text = string.Format(await _localizationService.GetResourceAsync("Admin.System.Warnings.PluginsOverrideSameService"), overridenService.Key, assemblies)
+            //    });
+            //}
         }
 
         /// <summary>

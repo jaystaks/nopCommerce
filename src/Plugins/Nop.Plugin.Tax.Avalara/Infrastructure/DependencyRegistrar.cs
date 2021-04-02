@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Autofac;
 using Nop.Core.Configuration;
 using Nop.Core.Infrastructure;
 using Nop.Core.Infrastructure.DependencyManagement;
@@ -14,13 +14,13 @@ namespace Nop.Plugin.Tax.Avalara.Infrastructure
         /// <summary>
         /// Register services and interfaces
         /// </summary>
-        /// <param name="services">Collection of service descriptors</param>
+        /// <param name="builder">Container builder</param>
         /// <param name="typeFinder">Type finder</param>
         /// <param name="appSettings">App settings</param>
-        public virtual void Register(IServiceCollection services, ITypeFinder typeFinder, AppSettings appSettings)
+        public virtual void Register(ContainerBuilder builder, ITypeFinder typeFinder, AppSettings appSettings)
         {
-            services.AddScoped<AvalaraTaxManager>();
-            services.AddScoped<TaxTransactionLogService>();
+            builder.RegisterType<AvalaraTaxManager>().AsSelf().InstancePerLifetimeScope();
+            builder.RegisterType<TaxTransactionLogService>().AsSelf().InstancePerLifetimeScope();
         }
 
         /// <summary>

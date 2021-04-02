@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Autofac;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -59,17 +60,17 @@ namespace Nop.Core.Infrastructure
         /// <summary>
         /// Register dependencies
         /// </summary>
-        /// <param name="services">Collection of service descriptors</param>
+        /// <param name="containerBuilder">Container builder</param>
         /// <param name="appSettings">App settings</param>
-        public virtual void RegisterDependencies(IServiceCollection services, AppSettings appSettings)
+        public virtual void RegisterDependencies(ContainerBuilder containerBuilder, AppSettings appSettings)
         {
             var typeFinder = new WebAppTypeFinder();
 
             //register engine
-            services.AddSingleton<IEngine>(this);
+            containerBuilder.RegisterInstance(this).As<IEngine>().SingleInstance();
 
             //register type finder
-            services.AddSingleton<ITypeFinder>(typeFinder);
+            containerBuilder.RegisterInstance(typeFinder).As<ITypeFinder>().SingleInstance();
 
             //find dependency registrars provided by other assemblies
             var dependencyRegistrars = typeFinder.FindClassesOfType<IDependencyRegistrar>();
@@ -81,9 +82,7 @@ namespace Nop.Core.Infrastructure
 
             //register all provided dependencies
             foreach (var dependencyRegistrar in instances)
-                dependencyRegistrar.Register(services, typeFinder, appSettings);
-
-            services.AddSingleton(services);
+                dependencyRegistrar.Register(containerBuilder, typeFinder, appSettings);
         }
 
         /// <summary>
@@ -122,7 +121,7 @@ namespace Nop.Core.Infrastructure
                 return assembly;
 
             //get assembly from TypeFinder
-            var tf = Resolve<ITypeFinder>();            
+            var tf = Resolve<ITypeFinder>();
             assembly = tf?.GetAssemblies().FirstOrDefault(a => a.FullName == args.Name);
             return assembly;
         }
@@ -203,7 +202,7 @@ namespace Nop.Core.Infrastructure
         public object Resolve(Type type, IServiceScope scope = null)
         {
             return GetServiceProvider(scope)?.GetService(type);
-        }        
+        }
 
         /// <summary>
         /// Resolve dependencies
